@@ -70,9 +70,13 @@
 
     .header{ display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
     h1{
-      margin:0; font-size: 20px; letter-spacing: .2px;
-      display:flex; align-items:center; gap:10px;
-      justify-content:center; /* ✅ Überschrift mittig */
+      margin:0;
+      font-size: 20px;
+      letter-spacing: .2px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      justify-content:center;
       text-align:center;
     }
     .logoDot{
@@ -262,48 +266,70 @@
     }
     .settingsFooter button{ flex: 1; }
 
-    /* Bedienungsanleitung scrollbar + max-height */
-    .helpPanel{
-      margin-top: 10px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background:
-        radial-gradient(700px 200px at 20% 0%, rgba(0,214,255,.14), transparent 55%),
-        radial-gradient(700px 200px at 80% 0%, rgba(255,80,195,.10), transparent 55%),
-        rgba(255,255,255,.03);
+    /* ===== Modal (Popup) ===== */
+    .modalOverlay{
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: flex-end; /* wirkt wie "von unten" */
+      justify-content: center;
       padding: 14px;
-      display:none;
-
-      max-height: 60vh;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
+      padding-bottom: calc(14px + env(safe-area-inset-bottom));
+      background: rgba(0,0,0,.58);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 9999;
     }
-    .helpPanel.open{ display:block; }
-    .helpTitle{
+    .modalOverlay.open{ display:flex; }
+
+    .modal{
+      width: min(720px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background:
+        radial-gradient(900px 260px at 20% 0%, rgba(0,214,255,.16), transparent 55%),
+        radial-gradient(900px 260px at 80% 0%, rgba(255,80,195,.12), transparent 55%),
+        linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+      box-shadow: 0 30px 100px rgba(0,0,0,.70);
+      overflow: hidden;
+      transform: translateY(10px);
+      animation: modalIn .18s ease-out;
+    }
+    @keyframes modalIn{
+      from{ opacity:0; transform: translateY(26px); }
+      to{ opacity:1; transform: translateY(10px); }
+    }
+
+    .modalHeader{
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:10px;
-      margin-bottom: 10px;
-      position: sticky;
-      top: 0;
-      padding-top: 2px;
-      background: linear-gradient(180deg, rgba(7,10,18,.88), rgba(7,10,18,.0));
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, rgba(7,10,18,.55), rgba(7,10,18,.0));
     }
-    .helpTitle b{ font-size: 14px; }
-    .helpContent{
-      color: rgba(255,255,255,.84);
+    .modalHeader b{ font-size: 14px; letter-spacing:.2px; }
+    .modalClose{
+      min-height: 40px;
+      padding: 8px 10px;
+      border-radius: 12px;
+    }
+
+    .modalBody{
+      padding: 12px 14px 14px;
+      max-height: min(70vh, 520px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      color: rgba(255,255,255,.86);
       font-size: 13px;
-      line-height:1.45;
+      line-height: 1.45;
       display:flex;
       flex-direction:column;
       gap: 12px;
     }
-    .helpContent ul{ margin: 6px 0 0 18px; padding:0; color: rgba(255,255,255,.82); }
-    .helpContent li{ margin: 3px 0; }
-    .helpContent i{ color: var(--muted); }
+    .modalBody ul{ margin: 6px 0 0 18px; padding:0; color: rgba(255,255,255,.84); }
+    .modalBody li{ margin: 3px 0; }
 
     @media (min-width: 720px){
       .wrap{ padding: 22px 18px 40px; }
@@ -314,13 +340,15 @@
       .btnSmall{ font-size: 12px; min-height: 40px; padding: 9px 11px; border-radius: 11px; }
       input, select, button{ font-size: 14px; min-height: 44px; border-radius: 12px; }
       .stickyResults{ top: 14px; background: none; padding: 0; }
-
-      .helpPanel{ max-height: 52vh; }
+      .modalOverlay{ align-items: center; } /* Desktop: zentriert */
+      .modal{ transform: translateY(0); }
+      .modalBody{ max-height: min(72vh, 560px); }
     }
 
     @media (prefers-reduced-motion: reduce){
       *{ transition:none !important; animation:none !important; }
       body::before{ display:none; }
+      .modal{ animation:none !important; }
     }
   </style>
 </head>
@@ -441,63 +469,93 @@
             </div>
 
             <div class="settingsFooter">
-              <button class="btn btnSmall" id="toggleHelp" type="button">Bedienungsanleitung</button>
+              <button class="btn btnSmall" id="openHelp" type="button">Bedienungsanleitung</button>
               <button class="btn btnSmall" id="resetDefaults" type="button">Standardwerte</button>
               <button class="btn btnSmall" id="installBtn" type="button">Installieren</button>
             </div>
 
-            <div class="helpPanel" id="helpPanel" aria-hidden="true">
-              <div class="helpTitle">
-                <b>Bedienungsanleitung</b>
-                <button class="btn btnSmall" id="closeHelp" type="button">Schließen</button>
-              </div>
-
-              <div class="helpContent">
-                <div>
-                  <b>Grundprinzip</b><br>
-                  Du gibst an, <b>wann du gekommen bist</b>.
-                  Der Rechner zeigt dir ein <b>Geh-Fenster</b>, in dem du:
-                  <ul>
-                    <li>deine Sollzeit sicher erreichst (<b>MIN</b>)</li>
-                    <li>noch <u>nicht</u> in eine längere Pause rutschst (<b>MAX</b>)</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <b>Anzeige „Kommen“</b><br>
-                  <b>Kommen</b> ist die <b>gerundete</b> Uhrzeit nach deinen Einstellungen.
-                </div>
-
-                <div>
-                  <b>Anzeige „Gehen: MIN – MAX“</b>
-                  <ul>
-                    <li><b>MIN</b> = frühester Zeitpunkt, an dem die <b>Ziel-Nettozeit</b> erreicht ist.</li>
-                    <li><b>MAX</b> = spätester Zeitpunkt, bevor du in die <b>nächste Pausenstufe</b> rutschst.</li>
-                  </ul>
-                  Beide Werte sind <b>gerundet</b> nach den Gehen-Rundungsregeln.
-                </div>
-
-                <div>
-                  <b>Pausenlogik</b><br>
-                  Pause wird automatisch aus den Regeln berechnet („ab Netto → Pause“).
-                  Wenn du über eine Schwelle kommst, wird die Pause länger – das begrenzt <b>MAX</b>.
-                </div>
-
-                <div>
-                  <b>Erweiterter Modus</b><br>
-                  Du gibst zusätzlich „Wann gegangen?“ ein und bekommst Nettozeit + Überstunden.
-                </div>
-
-                <div>
-                  <b>Installieren</b><br>
-                  Wenn du die Seite im Browser (https) geöffnet hast, kann Chrome die App installieren.
-                  In der installierten App steht hier dann „Installiert ✓“.
-                </div>
-              </div>
-            </div>
-
           </div>
         </details>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Popup / Modal Bedienungsanleitung ===== -->
+  <div class="modalOverlay" id="helpOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <div class="modalHeader">
+        <b id="helpTitle">Bedienungsanleitung</b>
+        <button class="btn modalClose" id="closeHelp" type="button">✕</button>
+      </div>
+
+      <div class="modalBody" id="helpBody">
+        <div>
+          <b>Grundprinzip</b><br>
+          Du gibst an, <b>wann du gekommen bist</b>. Der Rechner zeigt dir ein <b>Geh-Fenster</b>:
+          <ul>
+            <li><b>MIN</b>: du erreichst deine Ziel-Nettozeit sicher.</li>
+            <li><b>MAX</b>: du rutschst noch <u>nicht</u> in eine längere Pause.</li>
+          </ul>
+        </div>
+
+        <div>
+          <b>Kommen</b><br>
+          „Kommen“ ist die <b>gerundete</b> Uhrzeit nach deinen Kommen-Rundungsregeln.
+        </div>
+
+        <div>
+          <b>Gehen: MIN – MAX</b><br>
+          Beide Werte sind <b>gerundet</b> nach deiner Gehen-Rundung. Wenn du später als MAX gehst,
+          kann die Pause automatisch länger werden und sich deine Nettozeit verschieben.
+        </div>
+
+        <div>
+          <b>Pausenlogik</b><br>
+          Die Pause wird automatisch aus deinen Pausenregeln berechnet („ab Netto → Pause“).
+          Typisch:
+          <ul>
+            <li>ab 6:00 Netto → 30 min Pause</li>
+            <li>ab 9:00 Netto → 45 min Pause</li>
+          </ul>
+          Genau diese Schwellen steuern, warum es ein MAX gibt.
+        </div>
+
+        <div>
+          <b>Ziel-Nettozeit</b><br>
+          Das ist deine Sollzeit (z. B. 8:00). MIN wird so berechnet, dass diese Nettozeit erreicht wird –
+          inklusive Mindestpause nach Regeln.
+        </div>
+
+        <div>
+          <b>Erweiterter Modus</b><br>
+          Wenn „Erweiterter Modus“ aktiv ist, kannst du zusätzlich „Wann gegangen?“ eingeben.
+          Dann zeigt dir die App Nettozeit und Überstunden.
+        </div>
+
+        <div>
+          <b>Rundung – nächster / abrunden / aufrunden</b>
+          <ul>
+            <li><b>nächster</b>: zum nächstliegenden Schritt (07:13 → 07:15 bei 5 min)</li>
+            <li><b>abrunden</b>: immer nach unten (07:13 → 07:10)</li>
+            <li><b>aufrunden</b>: immer nach oben (07:13 → 07:15)</li>
+          </ul>
+        </div>
+
+        <div>
+          <b>Standardwerte</b><br>
+          Setzt alles wieder auf:
+          <ul>
+            <li>Ziel-Nettozeit 08:00</li>
+            <li>Rundung Kommen/Gehen: 5 min, „nächster“</li>
+            <li>Pausenregeln: 6:00 → 30 min, 9:00 → 45 min</li>
+          </ul>
+        </div>
+
+        <div>
+          <b>Installieren</b><br>
+          Im Browser über https öffnen (GitHub Pages). Wenn Chrome die Installation anbietet,
+          wird der Button aktiv. In der installierten App steht dann „Installiert ✓“.
+        </div>
       </div>
     </div>
   </div>
@@ -510,43 +568,32 @@
     });
   }
 
-  // ===== Install Prompt (Chrome/Android) – FIXED/SMART =====
+  // ===== Install Prompt (Chrome/Android) =====
   let deferredPrompt = null;
   const installBtn = document.getElementById('installBtn');
 
   function isStandalone(){
-    // Android/Chrome: display-mode standalone
     const mq = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
-    // iOS Safari legacy
     const ios = (window.navigator && window.navigator.standalone) === true;
     return mq || ios;
   }
-
   function setInstallBtn(state, label){
     installBtn.disabled = !state;
     installBtn.textContent = label;
     installBtn.style.opacity = state ? "1" : ".55";
   }
-
   function refreshInstallUI(){
-    // Wenn bereits installiert/als App geöffnet → eindeutiger Zustand
     if (isStandalone()){
       deferredPrompt = null;
       setInstallBtn(false, "Installiert ✓");
       return;
     }
-
-    // Wenn Prompt vorhanden → installierbar
     if (deferredPrompt){
       setInstallBtn(true, "Installieren");
       return;
     }
-
-    // Sonst: erklärender Zustand statt „nicht verfügbar“ ohne Kontext
     setInstallBtn(false, "Installieren (im Browser öffnen)");
   }
-
-  // Initial
   refreshInstallUI();
 
   window.addEventListener('beforeinstallprompt', (e) => {
@@ -554,24 +601,57 @@
     deferredPrompt = e;
     refreshInstallUI();
   });
-
   window.addEventListener('appinstalled', () => {
     deferredPrompt = null;
     setInstallBtn(false, "Installiert ✓");
   });
-
-  // Wenn man zwischen App/Browser wechselt, UI nachziehen
   document.addEventListener('visibilitychange', refreshInstallUI);
   window.addEventListener('focus', refreshInstallUI);
 
   installBtn.addEventListener('click', async () => {
     if (isStandalone()) return;
     if (!deferredPrompt) return;
-
     deferredPrompt.prompt();
     try { await deferredPrompt.userChoice; } catch(e) {}
     deferredPrompt = null;
     refreshInstallUI();
+  });
+
+  // ===== Modal Bedienungsanleitung =====
+  const helpOverlay = document.getElementById('helpOverlay');
+  const helpBody = document.getElementById('helpBody');
+  const openHelpBtn = document.getElementById('openHelp');
+  const closeHelpBtn = document.getElementById('closeHelp');
+
+  function openHelp(){
+    helpOverlay.classList.add('open');
+    helpOverlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    // Scroll beim Öffnen nach oben
+    helpBody.scrollTop = 0;
+    // Fokus auf Close (besser für Mobile/Accessibility)
+    closeHelpBtn.focus({preventScroll:true});
+  }
+  function closeHelp(){
+    helpOverlay.classList.remove('open');
+    helpOverlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    openHelpBtn.focus({preventScroll:true});
+  }
+
+  openHelpBtn.addEventListener('click', openHelp);
+  closeHelpBtn.addEventListener('click', closeHelp);
+
+  // Klick außerhalb schließt
+  helpOverlay.addEventListener('click', (e) => {
+    if (e.target === helpOverlay) closeHelp();
+  });
+
+  // ESC schließt
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && helpOverlay.classList.contains('open')) {
+      closeHelp();
+    }
   });
 
   // ===== App-Logik =====
@@ -699,13 +779,6 @@
     $('advBox').style.display = $('advanced').value === "1" ? "grid" : "none";
   }
 
-  function setHelp(open){
-    const panel = $('helpPanel');
-    panel.classList.toggle('open', open);
-    panel.setAttribute('aria-hidden', open ? 'false' : 'true');
-    $('toggleHelp').textContent = open ? 'Bedienungsanleitung ausblenden' : 'Bedienungsanleitung';
-  }
-
   function calcRange(startRounded, stepEnd, modeEnd, targetNet){
     let minEnd=null, maxEnd=null;
 
@@ -791,15 +864,8 @@
     rules = structuredClone(DEFAULTS.rules);
     renderRules();
     setAdvancedUI();
-    setHelp(false);
     calcAll();
   };
-
-  $('toggleHelp').onclick=()=>{
-    const open = !$('helpPanel').classList.contains('open');
-    setHelp(open);
-  };
-  $('closeHelp').onclick=()=> setHelp(false);
 
   $('advanced').addEventListener('change', ()=>{
     setAdvancedUI();
@@ -816,7 +882,6 @@
 
   renderRules();
   setAdvancedUI();
-  setHelp(false);
   calcAll();
 </script>
 </body>
