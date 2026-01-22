@@ -72,6 +72,8 @@
     h1{
       margin:0; font-size: 20px; letter-spacing: .2px;
       display:flex; align-items:center; gap:10px;
+      justify-content:center; /* ✅ Überschrift mittig */
+      text-align:center;
     }
     .logoDot{
       width:10px; height:10px; border-radius:999px;
@@ -80,7 +82,7 @@
       box-shadow: 0 0 0 6px rgba(118,92,255,.10), 0 0 22px rgba(0,214,255,.16);
       flex: 0 0 auto;
     }
-    .subtitle{ color:var(--muted); font-size: 12.5px; line-height:1.3; }
+    .subtitle{ color:var(--muted); font-size: 12.5px; line-height:1.3; text-align:center; }
 
     .card{
       background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
@@ -110,7 +112,7 @@
 
     input, select, button{
       font: inherit;
-      font-size: 16px; /* iOS zoom prevention */
+      font-size: 16px;
       color: var(--text);
       border-radius: 14px;
       border: 1px solid var(--line);
@@ -144,8 +146,6 @@
       background: linear-gradient(135deg, rgba(118,92,255,.22), rgba(0,214,255,.10));
       box-shadow: 0 10px 28px rgba(118,92,255,.18);
     }
-
-    .out{ margin-top: 12px; display:grid; gap: 10px; }
 
     .stickyResults{
       position: sticky;
@@ -262,6 +262,7 @@
     }
     .settingsFooter button{ flex: 1; }
 
+    /* Bedienungsanleitung scrollbar + max-height */
     .helpPanel{
       margin-top: 10px;
       border: 1px solid var(--line);
@@ -272,6 +273,10 @@
         rgba(255,255,255,.03);
       padding: 14px;
       display:none;
+
+      max-height: 60vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .helpPanel.open{ display:block; }
     .helpTitle{
@@ -280,6 +285,12 @@
       justify-content:space-between;
       gap:10px;
       margin-bottom: 10px;
+      position: sticky;
+      top: 0;
+      padding-top: 2px;
+      background: linear-gradient(180deg, rgba(7,10,18,.88), rgba(7,10,18,.0));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
     .helpTitle b{ font-size: 14px; }
     .helpContent{
@@ -288,10 +299,10 @@
       line-height:1.45;
       display:flex;
       flex-direction:column;
-      gap: 10px;
+      gap: 12px;
     }
     .helpContent ul{ margin: 6px 0 0 18px; padding:0; color: rgba(255,255,255,.82); }
-    .helpContent li{ margin: 2px 0; }
+    .helpContent li{ margin: 3px 0; }
     .helpContent i{ color: var(--muted); }
 
     @media (min-width: 720px){
@@ -303,6 +314,8 @@
       .btnSmall{ font-size: 12px; min-height: 40px; padding: 9px 11px; border-radius: 11px; }
       input, select, button{ font-size: 14px; min-height: 44px; border-radius: 12px; }
       .stickyResults{ top: 14px; background: none; padding: 0; }
+
+      .helpPanel{ max-height: 52vh; }
     }
 
     @media (prefers-reduced-motion: reduce){
@@ -316,7 +329,7 @@
   <div class="wrap">
     <div class="header">
       <h1><span class="logoDot"></span> Kommen – Gehen – Rechner</h1>
-      <div class="subtitle">Mini-PWA: Offline-fähig + Installierbar in Chrome (Samsung).</div>
+      <div class="subtitle">Offline-fähig + Installierbar als App.</div>
     </div>
 
     <div class="card">
@@ -441,20 +454,44 @@
 
               <div class="helpContent">
                 <div>
-                  <b>Was du im Hauptbildschirm bekommst</b><br>
-                  Du gibst <b>Kommen</b> ein. Der Rechner zeigt:
+                  <b>Grundprinzip</b><br>
+                  Du gibst an, <b>wann du gekommen bist</b>.
+                  Der Rechner zeigt dir ein <b>Geh-Fenster</b>, in dem du:
                   <ul>
-                    <li><b>Kommen</b> (gerundet – so wie es im System landet)</li>
-                    <li><b>Gehen</b> als Zeitfenster <b>MIN – MAX</b></li>
+                    <li>deine Sollzeit sicher erreichst (<b>MIN</b>)</li>
+                    <li>noch <u>nicht</u> in eine längere Pause rutschst (<b>MAX</b>)</li>
                   </ul>
-                  <i>MIN</i>: Sollzeit sicher erreicht. <i>MAX</i>: noch nicht in die nächste Pausenstufe gerutscht.
                 </div>
+
+                <div>
+                  <b>Anzeige „Kommen“</b><br>
+                  <b>Kommen</b> ist die <b>gerundete</b> Uhrzeit nach deinen Einstellungen.
+                </div>
+
+                <div>
+                  <b>Anzeige „Gehen: MIN – MAX“</b>
+                  <ul>
+                    <li><b>MIN</b> = frühester Zeitpunkt, an dem die <b>Ziel-Nettozeit</b> erreicht ist.</li>
+                    <li><b>MAX</b> = spätester Zeitpunkt, bevor du in die <b>nächste Pausenstufe</b> rutschst.</li>
+                  </ul>
+                  Beide Werte sind <b>gerundet</b> nach den Gehen-Rundungsregeln.
+                </div>
+
+                <div>
+                  <b>Pausenlogik</b><br>
+                  Pause wird automatisch aus den Regeln berechnet („ab Netto → Pause“).
+                  Wenn du über eine Schwelle kommst, wird die Pause länger – das begrenzt <b>MAX</b>.
+                </div>
+
+                <div>
+                  <b>Erweiterter Modus</b><br>
+                  Du gibst zusätzlich „Wann gegangen?“ ein und bekommst Nettozeit + Überstunden.
+                </div>
+
                 <div>
                   <b>Installieren</b><br>
-                  Wenn die Seite über <b>http(s)</b> läuft, erscheint in Chrome der Install-Dialog.
-                  <ul>
-                    <li>Falls der Button deaktiviert ist: Seite läuft vermutlich über <b>file:///</b>.</li>
-                  </ul>
+                  Wenn du die Seite im Browser (https) geöffnet hast, kann Chrome die App installieren.
+                  In der installierten App steht hier dann „Installiert ✓“.
                 </div>
               </div>
             </div>
@@ -473,20 +510,49 @@
     });
   }
 
-  // ===== Install Prompt (Chrome/Android) =====
+  // ===== Install Prompt (Chrome/Android) – FIXED/SMART =====
   let deferredPrompt = null;
   const installBtn = document.getElementById('installBtn');
+
+  function isStandalone(){
+    // Android/Chrome: display-mode standalone
+    const mq = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+    // iOS Safari legacy
+    const ios = (window.navigator && window.navigator.standalone) === true;
+    return mq || ios;
+  }
+
   function setInstallBtn(state, label){
     installBtn.disabled = !state;
     installBtn.textContent = label;
     installBtn.style.opacity = state ? "1" : ".55";
   }
-  setInstallBtn(false, "Installieren (nicht verfügbar)");
+
+  function refreshInstallUI(){
+    // Wenn bereits installiert/als App geöffnet → eindeutiger Zustand
+    if (isStandalone()){
+      deferredPrompt = null;
+      setInstallBtn(false, "Installiert ✓");
+      return;
+    }
+
+    // Wenn Prompt vorhanden → installierbar
+    if (deferredPrompt){
+      setInstallBtn(true, "Installieren");
+      return;
+    }
+
+    // Sonst: erklärender Zustand statt „nicht verfügbar“ ohne Kontext
+    setInstallBtn(false, "Installieren (im Browser öffnen)");
+  }
+
+  // Initial
+  refreshInstallUI();
 
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    setInstallBtn(true, "Installieren");
+    refreshInstallUI();
   });
 
   window.addEventListener('appinstalled', () => {
@@ -494,15 +560,21 @@
     setInstallBtn(false, "Installiert ✓");
   });
 
+  // Wenn man zwischen App/Browser wechselt, UI nachziehen
+  document.addEventListener('visibilitychange', refreshInstallUI);
+  window.addEventListener('focus', refreshInstallUI);
+
   installBtn.addEventListener('click', async () => {
+    if (isStandalone()) return;
     if (!deferredPrompt) return;
+
     deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
+    try { await deferredPrompt.userChoice; } catch(e) {}
     deferredPrompt = null;
-    setInstallBtn(false, "Installiert ✓");
+    refreshInstallUI();
   });
 
-  // ===== App-Logik (unverändert) =====
+  // ===== App-Logik =====
   const DAY_LIMIT_MIN = 16 * 60;
 
   const DEFAULTS = {
