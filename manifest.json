@@ -1,0 +1,18 @@
+{
+  "name": "Kommen – Gehen – Rechner",
+  "short_name": "Kommen-Gehen",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#070A12",
+  "theme_color": "#070A12",
+  "description": "Kommen/Gehen mit Rundung, Pausenlogik, Netto- und Überstundenberechnung.",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='512'%20height='512'%20viewBox='0%200%20512%20512'%3E%3Cdefs%3E%3CradialGradient%20id='g'%20cx='30%25'%20cy='20%25'%20r='80%25'%3E%3Cstop%20offset='0%25'%20stop-color='%23765CFF'/%3E%3Cstop%20offset='55%25'%20stop-color='%2300D6FF'/%3E%3Cstop%20offset='100%25'%20stop-color='%23FF50C3'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect%20width='512'%20height='512'%20rx='120'%20fill='%23070A12'/%3E%3Ccircle%20cx='256'%20cy='256'%20r='180'%20fill='url(%23g)'%20opacity='0.95'/%3E%3Cpath%20d='M256%20142c62.9%200%20114%2051.1%20114%20114s-51.1%20114-114%20114-114-51.1-114-114%2051.1-114%20114-114zm0%2030c-46.3%200-84%2037.7-84%2084s37.7%2084%2084%2084%2084-37.7%2084-84-37.7-84-84-84z'%20fill='white'%20opacity='0.92'/%3E%3Cpath%20d='M250%20192h24v78l54%2032-12%2020-66-40z'%20fill='white'%20opacity='0.92'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

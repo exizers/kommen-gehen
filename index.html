@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#070A12" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Kommen-Gehen" />
+
+  <link rel="manifest" href="./manifest.json" />
+
+  <title>Kommen – Gehen – Rechner</title>
+
+  <style>
+    :root{
+      --bg0:#070A12;
+      --card: rgba(255,255,255,.06);
+      --line: rgba(255,255,255,.12);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.68);
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --shadow2: 0 8px 24px rgba(0,0,0,.42);
+      --radius: 18px;
+      --radius2: 14px;
+
+      --a1: rgba(118, 92, 255, .95);
+      --a2: rgba(0, 214, 255, .85);
+      --a3: rgba(255, 80, 195, .85);
+    }
+
+    *{ box-sizing:border-box; }
+    html, body{ height:100%; }
+    body{
+      margin:0;
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, sans-serif;
+      background:
+        radial-gradient(1200px 800px at 18% 20%, rgba(118,92,255,.20), transparent 55%),
+        radial-gradient(900px 700px at 80% 30%, rgba(0,214,255,.16), transparent 55%),
+        radial-gradient(900px 700px at 55% 85%, rgba(255,80,195,.12), transparent 60%),
+        linear-gradient(180deg, #050811 0%, #070A12 60%, #050811 100%);
+      overflow-x:hidden;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    body::before{
+      content:"";
+      position:fixed; inset:0;
+      pointer-events:none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.10'/%3E%3C/svg%3E");
+      opacity:.22;
+      mix-blend-mode: overlay;
+      transform: translateZ(0);
+      animation: grain 10s steps(2) infinite;
+    }
+    @keyframes grain{
+      0%{ transform:translate3d(0,0,0); }
+      25%{ transform:translate3d(-2%,1%,0); }
+      50%{ transform:translate3d(-1%,-2%,0); }
+      75%{ transform:translate3d(2%,1%,0); }
+      100%{ transform:translate3d(0,0,0); }
+    }
+
+    .wrap{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: calc(16px + env(safe-area-inset-top)) 14px 28px;
+      position:relative;
+    }
+
+    .header{ display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+    h1{
+      margin:0; font-size: 20px; letter-spacing: .2px;
+      display:flex; align-items:center; gap:10px;
+    }
+    .logoDot{
+      width:10px; height:10px; border-radius:999px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(255,255,255,.25) 35%, transparent 62%),
+                  linear-gradient(135deg, var(--a1), var(--a2));
+      box-shadow: 0 0 0 6px rgba(118,92,255,.10), 0 0 22px rgba(0,214,255,.16);
+      flex: 0 0 auto;
+    }
+    .subtitle{ color:var(--muted); font-size: 12.5px; line-height:1.3; }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .card::before{
+      content:"";
+      position:absolute; inset:-1px;
+      background: radial-gradient(800px 240px at 15% 0%, rgba(118,92,255,.22), transparent 55%),
+                  radial-gradient(800px 240px at 85% 0%, rgba(0,214,255,.16), transparent 55%);
+      pointer-events:none;
+      opacity:.9;
+    }
+    .cardInner{ position:relative; padding: 14px; }
+
+    label{
+      display:block;
+      color: var(--muted);
+      font-size: 12px;
+      margin: 0 0 7px 2px;
+      letter-spacing:.2px;
+    }
+
+    input, select, button{
+      font: inherit;
+      font-size: 16px; /* iOS zoom prevention */
+      color: var(--text);
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(0,0,0,.22);
+      padding: 12px 12px;
+      outline: none;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease, box-shadow .12s ease;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      min-height: 48px;
+    }
+    input, select{ width:100%; }
+    input:focus, select:focus{
+      border-color: rgba(118,92,255,.45);
+      box-shadow: 0 0 0 4px rgba(118,92,255,.16);
+    }
+
+    .row{ display:grid; grid-template-columns: 1fr; gap: 10px; }
+
+    .btn{
+      cursor:pointer;
+      user-select:none;
+      border-color: rgba(255,255,255,.14);
+      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+      box-shadow: var(--shadow2);
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.22); }
+    .btn:active{ transform: translateY(0px); background: rgba(255,255,255,.08); }
+    .btnPrimary{
+      border-color: rgba(118,92,255,.32);
+      background: linear-gradient(135deg, rgba(118,92,255,.22), rgba(0,214,255,.10));
+      box-shadow: 0 10px 28px rgba(118,92,255,.18);
+    }
+
+    .out{ margin-top: 12px; display:grid; gap: 10px; }
+
+    .stickyResults{
+      position: sticky;
+      top: calc(10px + env(safe-area-inset-top));
+      z-index: 20;
+      display:grid;
+      gap: 10px;
+      padding: 10px 0;
+      background: linear-gradient(180deg, rgba(7,10,18,.92), rgba(7,10,18,.0));
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .pill{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(600px 120px at 20% 0%, rgba(118,92,255,.12), transparent 55%),
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      box-shadow: 0 10px 26px rgba(0,0,0,.35);
+    }
+    .pill .k{
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing:.2px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .badge{
+      height:18px;
+      padding:0 8px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      display:inline-flex;
+      align-items:center;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .mono{
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, Menlo, Consolas, Monaco, "SFMono-Regular", monospace;
+    }
+    .big{ font-size: 18px; font-weight: 800; letter-spacing: .3px; }
+
+    .advBox{
+      margin-top: 10px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,.10);
+      display:none;
+      gap: 10px;
+    }
+
+    details{
+      margin-top: 14px;
+      border-radius: var(--radius2);
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      overflow:hidden;
+    }
+    summary{
+      list-style:none;
+      cursor:pointer;
+      padding: 12px 14px;
+      color: var(--muted);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      user-select:none;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    }
+    summary::-webkit-details-marker{ display:none; }
+    .chev{
+      width: 10px; height: 10px;
+      border-right: 2px solid rgba(255,255,255,.45);
+      border-bottom: 2px solid rgba(255,255,255,.45);
+      transform: rotate(45deg);
+      transition: transform .16s ease;
+      margin-right:2px;
+    }
+    details[open] .chev{ transform: rotate(225deg); }
+
+    .settings{ padding: 14px; display:grid; gap: 12px; }
+    .grid2{ display:grid; grid-template-columns: 1fr; gap: 12px; }
+
+    .rules{ display:grid; gap: 8px; }
+    .ruleRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 8px;
+      align-items:center;
+    }
+
+    .btnSmall{
+      padding: 10px 12px;
+      font-size: 15px;
+      border-radius: 14px;
+      min-height: 46px;
+    }
+    .settingsFooter{
+      display:flex;
+      gap: 10px;
+      justify-content:stretch;
+      flex-wrap:wrap;
+      margin-top: 2px;
+    }
+    .settingsFooter button{ flex: 1; }
+
+    .helpPanel{
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background:
+        radial-gradient(700px 200px at 20% 0%, rgba(0,214,255,.14), transparent 55%),
+        radial-gradient(700px 200px at 80% 0%, rgba(255,80,195,.10), transparent 55%),
+        rgba(255,255,255,.03);
+      padding: 14px;
+      display:none;
+    }
+    .helpPanel.open{ display:block; }
+    .helpTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom: 10px;
+    }
+    .helpTitle b{ font-size: 14px; }
+    .helpContent{
+      color: rgba(255,255,255,.84);
+      font-size: 13px;
+      line-height:1.45;
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+    }
+    .helpContent ul{ margin: 6px 0 0 18px; padding:0; color: rgba(255,255,255,.82); }
+    .helpContent li{ margin: 2px 0; }
+    .helpContent i{ color: var(--muted); }
+
+    @media (min-width: 720px){
+      .wrap{ padding: 22px 18px 40px; }
+      .row{ grid-template-columns: 1fr auto; align-items:end; }
+      .grid2{ grid-template-columns: 1fr 1fr; }
+      .settingsFooter{ justify-content:flex-end; }
+      .settingsFooter button{ flex: 0 0 auto; }
+      .btnSmall{ font-size: 12px; min-height: 40px; padding: 9px 11px; border-radius: 11px; }
+      input, select, button{ font-size: 14px; min-height: 44px; border-radius: 12px; }
+      .stickyResults{ top: 14px; background: none; padding: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      *{ transition:none !important; animation:none !important; }
+      body::before{ display:none; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="header">
+      <h1><span class="logoDot"></span> Kommen – Gehen – Rechner</h1>
+      <div class="subtitle">Mini-PWA: Offline-fähig + Installierbar in Chrome (Samsung).</div>
+    </div>
+
+    <div class="card">
+      <div class="cardInner">
+        <div class="row">
+          <div>
+            <label for="start">Wann gekommen?</label>
+            <input id="start" type="time" step="60" value="07:15">
+          </div>
+          <button class="btn btnPrimary" id="nowBtn" type="button">Kommen = jetzt</button>
+        </div>
+
+        <div class="stickyResults">
+          <div class="pill">
+            <div class="k">Kommen <span class="badge">gerundet</span></div>
+            <div class="mono big" id="roundedStart">—</div>
+          </div>
+
+          <div class="pill">
+            <div class="k">Gehen <span class="badge">min – max</span></div>
+            <div class="mono big" id="goRange">—</div>
+          </div>
+        </div>
+
+        <!-- Erweiterter Modus -->
+        <div class="advBox" id="advBox">
+          <div>
+            <label for="end">Wann gegangen?</label>
+            <input id="end" type="time" step="60" value="16:00">
+          </div>
+
+          <div class="pill">
+            <div class="k">Pause <span class="badge">min</span></div>
+            <div class="mono big" id="breakMin">—</div>
+          </div>
+
+          <div class="pill">
+            <div class="k">Nettozeit</div>
+            <div class="mono big" id="netTime">—</div>
+          </div>
+
+          <div class="pill">
+            <div class="k">Überstunden</div>
+            <div class="mono big" id="overtime">—</div>
+          </div>
+        </div>
+
+        <details>
+          <summary>
+            <span>Einstellungen</span>
+            <span class="chev"></span>
+          </summary>
+
+          <div class="settings">
+            <div class="grid2">
+              <div>
+                <label for="targetNet">Ziel-Nettozeit</label>
+                <input id="targetNet" type="time" value="08:00">
+              </div>
+              <div>
+                <label for="advanced">Erweiterter Modus</label>
+                <select id="advanced">
+                  <option value="0" selected>Aus</option>
+                  <option value="1">An</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid2">
+              <div>
+                <label>Kommen-Rundung</label>
+                <div class="grid2">
+                  <select id="roundStepStart">
+                    <option value="1">1 min</option>
+                    <option value="5" selected>5 min</option>
+                    <option value="10">10 min</option>
+                    <option value="15">15 min</option>
+                  </select>
+                  <select id="roundModeStart">
+                    <option value="nearest" selected>nächster</option>
+                    <option value="floor">abrunden</option>
+                    <option value="ceil">aufrunden</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label>Gehen-Rundung</label>
+                <div class="grid2">
+                  <select id="roundStepEnd">
+                    <option value="1">1 min</option>
+                    <option value="5" selected>5 min</option>
+                    <option value="10">10 min</option>
+                    <option value="15">15 min</option>
+                  </select>
+                  <select id="roundModeEnd">
+                    <option value="nearest" selected>nächster</option>
+                    <option value="floor">abrunden</option>
+                    <option value="ceil">aufrunden</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label>Pausenregeln (ab Netto → Pause)</label>
+              <div class="rules" id="rules"></div>
+              <button class="btn btnSmall" id="addRule" type="button">+ Regel</button>
+            </div>
+
+            <div class="settingsFooter">
+              <button class="btn btnSmall" id="toggleHelp" type="button">Bedienungsanleitung</button>
+              <button class="btn btnSmall" id="resetDefaults" type="button">Standardwerte</button>
+              <button class="btn btnSmall" id="installBtn" type="button">Installieren</button>
+            </div>
+
+            <div class="helpPanel" id="helpPanel" aria-hidden="true">
+              <div class="helpTitle">
+                <b>Bedienungsanleitung</b>
+                <button class="btn btnSmall" id="closeHelp" type="button">Schließen</button>
+              </div>
+
+              <div class="helpContent">
+                <div>
+                  <b>Was du im Hauptbildschirm bekommst</b><br>
+                  Du gibst <b>Kommen</b> ein. Der Rechner zeigt:
+                  <ul>
+                    <li><b>Kommen</b> (gerundet – so wie es im System landet)</li>
+                    <li><b>Gehen</b> als Zeitfenster <b>MIN – MAX</b></li>
+                  </ul>
+                  <i>MIN</i>: Sollzeit sicher erreicht. <i>MAX</i>: noch nicht in die nächste Pausenstufe gerutscht.
+                </div>
+                <div>
+                  <b>Installieren</b><br>
+                  Wenn die Seite über <b>http(s)</b> läuft, erscheint in Chrome der Install-Dialog.
+                  <ul>
+                    <li>Falls der Button deaktiviert ist: Seite läuft vermutlich über <b>file:///</b>.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ===== PWA (Service Worker) registrieren =====
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+      try { await navigator.serviceWorker.register('./sw.js'); } catch(e) {}
+    });
+  }
+
+  // ===== Install Prompt (Chrome/Android) =====
+  let deferredPrompt = null;
+  const installBtn = document.getElementById('installBtn');
+  function setInstallBtn(state, label){
+    installBtn.disabled = !state;
+    installBtn.textContent = label;
+    installBtn.style.opacity = state ? "1" : ".55";
+  }
+  setInstallBtn(false, "Installieren (nicht verfügbar)");
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    setInstallBtn(true, "Installieren");
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    setInstallBtn(false, "Installiert ✓");
+  });
+
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    setInstallBtn(false, "Installiert ✓");
+  });
+
+  // ===== App-Logik (unverändert) =====
+  const DAY_LIMIT_MIN = 16 * 60;
+
+  const DEFAULTS = {
+    targetNet: "08:00",
+    roundStepStart: 5,
+    roundModeStart: "nearest",
+    roundStepEnd: 5,
+    roundModeEnd: "nearest",
+    advanced: 0,
+    rules: [
+      { t: 6*60, p: 30 },
+      { t: 9*60, p: 45 }
+    ]
+  };
+
+  const $ = id => document.getElementById(id);
+  const pad = n => String(n).padStart(2,'0');
+
+  function t2m(t){
+    if(!t || !/^\d{2}:\d{2}$/.test(t)) return null;
+    const [h,m]=t.split(':').map(Number);
+    return h*60+m;
+  }
+  function m2t(m){
+    m = ((m % 1440) + 1440) % 1440;
+    return `${pad(Math.floor(m/60))}:${pad(m%60)}`;
+  }
+
+  function roundBy(min, step, mode){
+    step = Math.max(1, Number(step)||1);
+    const q = min / step;
+    if(mode === "floor") return Math.floor(q) * step;
+    if(mode === "ceil")  return Math.ceil(q) * step;
+    return Math.round(q) * step;
+  }
+
+  function fmtSignedMinutes(min){
+    const sign = min < 0 ? "-" : "+";
+    min = Math.abs(min);
+    const h = Math.floor(min/60);
+    const m = min % 60;
+    return `${sign}${h}:${pad(m)}`;
+  }
+  function fmtMinutes(min){
+    min = Math.max(0, Math.floor(min));
+    const h = Math.floor(min/60);
+    const m = min % 60;
+    return `${h}:${pad(m)}`;
+  }
+
+  let rules = structuredClone(DEFAULTS.rules);
+
+  function normalizeRules(){
+    rules = rules
+      .map(r=>({t: Math.max(0, Math.floor(r.t)), p: Math.max(0, Math.floor(r.p))}))
+      .sort((a,b)=>a.t-b.t || a.p-b.p);
+    const out=[];
+    for(const r of rules){
+      const last=out[out.length-1];
+      if(last && last.t===r.t) last.p=Math.max(last.p,r.p);
+      else out.push({...r});
+    }
+    rules = out;
+  }
+
+  function pauseFor(netMin){
+    let p=0;
+    for(const r of rules){
+      if(netMin >= r.t) p = Math.max(p, r.p);
+      else break;
+    }
+    return p;
+  }
+
+  function solveNetFromPresence(presence){
+    const candidates = new Set([0]);
+    for(const r of rules) candidates.add(r.p);
+
+    for(const p of Array.from(candidates).sort((a,b)=>a-b)){
+      const net = presence - p;
+      if(net >= 0 && pauseFor(net) === p) return {net, p};
+    }
+    const net0 = Math.max(0, presence);
+    const p0 = pauseFor(net0);
+    return {net: Math.max(0, presence - p0), p: p0};
+  }
+
+  function renderRules(){
+    normalizeRules();
+    const wrap=$('rules');
+    wrap.innerHTML='';
+    rules.forEach((x,i)=>{
+      const row=document.createElement('div');
+      row.className='ruleRow';
+
+      const ti=document.createElement('input');
+      ti.type='time'; ti.step='60'; ti.value=m2t(x.t);
+
+      const pa=document.createElement('select');
+      [0,15,20,30,45,60].forEach(v=>{
+        const o=document.createElement('option');
+        o.value=v; o.textContent=`${v} min`;
+        if(v===x.p)o.selected=true;
+        pa.appendChild(o);
+      });
+
+      const del=document.createElement('button');
+      del.type='button';
+      del.className='btn btnSmall';
+      del.textContent='✕';
+
+      ti.oninput=()=>{ rules[i].t=t2m(ti.value)??0; renderRules(); calcAll(); };
+      pa.onchange=()=>{ rules[i].p=Number(pa.value)||0; renderRules(); calcAll(); };
+      del.onclick=()=>{ rules.splice(i,1); if(!rules.length) rules=structuredClone(DEFAULTS.rules); renderRules(); calcAll(); };
+
+      row.append(ti,pa,del);
+      wrap.appendChild(row);
+    });
+  }
+
+  function setAdvancedUI(){
+    $('advBox').style.display = $('advanced').value === "1" ? "grid" : "none";
+  }
+
+  function setHelp(open){
+    const panel = $('helpPanel');
+    panel.classList.toggle('open', open);
+    panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+    $('toggleHelp').textContent = open ? 'Bedienungsanleitung ausblenden' : 'Bedienungsanleitung';
+  }
+
+  function calcRange(startRounded, stepEnd, modeEnd, targetNet){
+    let minEnd=null, maxEnd=null;
+
+    for(let actual = startRounded; actual <= startRounded + DAY_LIMIT_MIN; actual += 1){
+      const endRounded = roundBy(actual, stepEnd, modeEnd);
+      const solved = solveNetFromPresence(endRounded - startRounded);
+      if(solved.net >= targetNet){
+        minEnd = endRounded;
+        break;
+      }
+    }
+
+    const basePause = pauseFor(targetNet);
+    for(let actual = startRounded; actual <= startRounded + DAY_LIMIT_MIN; actual += 1){
+      const endRounded = roundBy(actual, stepEnd, modeEnd);
+      const solved = solveNetFromPresence(endRounded - startRounded);
+      if(solved.p > basePause) break;
+      maxEnd = endRounded;
+    }
+
+    return {minEnd, maxEnd};
+  }
+
+  function calcAll(){
+    const startRaw = t2m($('start').value);
+    if(startRaw === null) return;
+
+    const stepStart = Number($('roundStepStart').value)||5;
+    const modeStart = $('roundModeStart').value || "nearest";
+    const stepEnd   = Number($('roundStepEnd').value)||5;
+    const modeEnd   = $('roundModeEnd').value || "nearest";
+
+    const startRounded = roundBy(startRaw, stepStart, modeStart);
+    $('roundedStart').textContent = m2t(startRounded);
+
+    const targetNet = t2m($('targetNet').value) ?? 8*60;
+
+    const {minEnd, maxEnd} = calcRange(startRounded, stepEnd, modeEnd, targetNet);
+    $('goRange').textContent =
+      (minEnd!==null && maxEnd!==null) ? `${m2t(minEnd)} - ${m2t(maxEnd)}` : '—';
+
+    if($('advanced').value === "1"){
+      const endRaw = t2m($('end').value);
+      if(endRaw === null){
+        $('breakMin').textContent="—";
+        $('netTime').textContent="—";
+        $('overtime').textContent="—";
+        return;
+      }
+
+      let endActual = endRaw;
+      if(endActual < startRounded) endActual += 1440;
+
+      const endRounded = roundBy(endActual, stepEnd, modeEnd);
+      const presence = endRounded - startRounded;
+
+      const solved = solveNetFromPresence(presence);
+
+      $('breakMin').textContent = `${solved.p} min`;
+      $('netTime').textContent  = fmtMinutes(solved.net);
+      $('overtime').textContent = fmtSignedMinutes(solved.net - targetNet);
+    }
+  }
+
+  $('nowBtn').onclick=()=>{
+    const d=new Date();
+    $('start').value = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    calcAll();
+  };
+
+  $('addRule').onclick=()=>{
+    rules.push({t:10*60,p:60});
+    renderRules(); calcAll();
+  };
+
+  $('resetDefaults').onclick=()=>{
+    $('targetNet').value = DEFAULTS.targetNet;
+    $('roundStepStart').value = String(DEFAULTS.roundStepStart);
+    $('roundModeStart').value = DEFAULTS.roundModeStart;
+    $('roundStepEnd').value   = String(DEFAULTS.roundStepEnd);
+    $('roundModeEnd').value   = DEFAULTS.roundModeEnd;
+    $('advanced').value = String(DEFAULTS.advanced);
+    rules = structuredClone(DEFAULTS.rules);
+    renderRules();
+    setAdvancedUI();
+    setHelp(false);
+    calcAll();
+  };
+
+  $('toggleHelp').onclick=()=>{
+    const open = !$('helpPanel').classList.contains('open');
+    setHelp(open);
+  };
+  $('closeHelp').onclick=()=> setHelp(false);
+
+  $('advanced').addEventListener('change', ()=>{
+    setAdvancedUI();
+    calcAll();
+  });
+
+  ['start','end','targetNet','roundStepStart','roundModeStart','roundStepEnd','roundModeEnd'].forEach(id=>{
+    const node = $(id);
+    if(node){
+      node.addEventListener('input', calcAll);
+      node.addEventListener('change', calcAll);
+    }
+  });
+
+  renderRules();
+  setAdvancedUI();
+  setHelp(false);
+  calcAll();
+</script>
+</body>
+</html>
