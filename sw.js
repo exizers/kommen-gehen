@@ -3,7 +3,7 @@
    Cache-Version: v6
    ========================================================= */
 
-const CACHE_NAME = "kommen-gehen-v6";
+const CACHE_NAME = "kommen-gehen-v7";
 
 const ASSETS = [
   "./",
@@ -103,3 +103,4 @@ self.addEventListener("notificationclick", (event) => {
       })
   );
 });
+
